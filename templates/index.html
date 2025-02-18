@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Matcher</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="max-w-2xl w-full bg-white shadow-lg rounded-lg p-6">
+        <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">Resume Matcher</h1>
+        
+        <label class="block text-gray-700 font-semibold">Job Description:</label>
+        <textarea id="jobDescription" class="w-full p-2 border rounded-md mt-1" rows="4" placeholder="Paste job description here..."></textarea>
+
+        <label class="block text-gray-700 font-semibold mt-4">Upload Resume (PDF):</label>
+        <input type="file" id="resumeFile" accept="application/pdf" class="w-full p-2 border rounded-md mt-1">
+
+        <button id="submitBtn" class="w-full mt-4 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700">
+            Match Resume
+        </button>
+
+        <div id="loading" class="hidden text-center mt-4">
+            <span class="text-gray-600">Processing...</span>
+        </div>
+
+        <div id="result" class="mt-4 hidden">
+            <h2 class="text-lg font-bold">Results:</h2>
+            <p class="text-gray-700"><strong>Match Percentage:</strong> <span id="matchPercentage"></span>%</p>
+            <p class="text-gray-700"><strong>Missing Skills:</strong> <span id="missingSkills"></span></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("submitBtn").addEventListener("click", async function() {
+            const jobDesc = document.getElementById("jobDescription").value;
+            const resumeFile = document.getElementById("resumeFile").files[0];
+
+            if (!jobDesc || !resumeFile) {
+                alert("Please enter a job description and upload a resume.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("job_description", jobDesc);
+            formData.append("resume", resumeFile);
+
+            document.getElementById("loading").classList.remove("hidden");
+            document.getElementById("result").classList.add("hidden");
+
+            const response = await fetch("http://127.0.0.1:8000/match_resume/", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            document.getElementById("loading").classList.add("hidden");
+            document.getElementById("result").classList.remove("hidden");
+
+            document.getElementById("matchPercentage").innerText = data.match_percentage;
+            document.getElementById("missingSkills").innerText = data.missing_keywords.join(", ") || "None";
+        });
+    </script>
+</body>
+</html>
